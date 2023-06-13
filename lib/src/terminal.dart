@@ -19,6 +19,7 @@ import 'package:xterm/src/core/state.dart';
 import 'package:xterm/src/core/tabs.dart';
 import 'package:xterm/src/utils/ascii.dart';
 import 'package:xterm/src/utils/circular_buffer.dart';
+import 'package:xterm/xterm.dart';
 
 /// [Terminal] is an interface to interact with command line applications. It
 /// translates escape sequences from the application into updates to the
@@ -903,4 +904,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
   void unknownOSC(String ps, List<String> pt) {
     onPrivateOSC?.call(ps, pt);
   }
+
+  @override
+  Function(TerminalCursorType cursorType)? onChangeCursorType;
 }

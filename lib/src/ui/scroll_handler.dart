@@ -117,16 +117,21 @@ class _TerminalScrollGestureHandlerState
       return widget.child;
     }
 
-    return Listener(
-      onPointerSignal: (event) {
+    return MouseRegion(
+      onHover: (event) {
         lastPointerPosition = event.position;
       },
-      onPointerDown: (event) {
-        lastPointerPosition = event.position;
-      },
-      child: InfiniteScrollView(
-        onScroll: _onScroll,
-        child: widget.child,
+      child: Listener(
+        onPointerSignal: (event) {
+          lastPointerPosition = event.position;
+        },
+        onPointerDown: (event) {
+          lastPointerPosition = event.position;
+        },
+        child: InfiniteScrollView(
+          onScroll: _onScroll,
+          child: widget.child,
+        ),
       ),
     );
   }

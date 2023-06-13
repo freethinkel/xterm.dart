@@ -2,6 +2,7 @@ import 'package:xterm/src/core/escape/handler.dart';
 import 'package:xterm/src/core/escape/parser.dart';
 import 'package:xterm/src/core/mouse/mode.dart';
 import 'package:xterm/src/base/observable.dart';
+import 'package:xterm/src/ui/cursor_type.dart';
 
 class TerminalCommand {
   TerminalCommand(
@@ -592,4 +593,7 @@ class _TerminalDebuggerHandler implements EscapeHandler {
   void unknownOSC(String code, List<String> args) {
     onCommand('unknownOSC($code, $args)', error: true);
   }
+
+  @override
+  Function(TerminalCursorType cursorType)? onChangeCursorType;
 }

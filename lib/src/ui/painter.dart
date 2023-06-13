@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/rendering.dart';
 import 'package:xterm/src/ui/palette_builder.dart';
 import 'package:xterm/src/ui/paragraph_cache.dart';
 import 'package:xterm/xterm.dart';
@@ -108,14 +109,14 @@ class TerminalPainter {
         return;
       case TerminalCursorType.underline:
         return canvas.drawLine(
-          Offset(offset.dx, _cellSize.height - 1),
-          Offset(offset.dx + _cellSize.width, _cellSize.height - 1),
+          Offset(offset.dx, offset.dy + _cellSize.height - 1),
+          Offset(offset.dx + _cellSize.width, offset.dy + _cellSize.height - 1),
           paint,
         );
       case TerminalCursorType.verticalBar:
         return canvas.drawLine(
-          Offset(offset.dx, 0),
-          Offset(offset.dx, _cellSize.height),
+          offset,
+          Offset(offset.dx, offset.dy + _cellSize.height),
           paint,
         );
     }
@@ -152,13 +153,117 @@ class TerminalPainter {
       final charWidth = cellData.content >> CellContent.widthShift;
       final cellOffset = offset.translate(i * cellWidth, 0);
 
-      paintCell(canvas, cellOffset, cellData);
+      paintCellBackground(canvas, cellOffset, cellData);
+
+      if (charWidth == 2) {
+        i++;
+      }
+    }
+    for (var i = 0; i < line.length; i++) {
+      line.getCellData(i, cellData);
+
+      final charWidth = cellData.content >> CellContent.widthShift;
+      final cellOffset = offset.translate(i * cellWidth, 0);
+
+      paintCellForeground(canvas, cellOffset, cellData);
 
       if (charWidth == 2) {
         i++;
       }
     }
   }
+
+  //
+  // void paintLine(
+  //   Canvas canvas,
+  //   Offset offset,
+  //   BufferLine line,
+  // ) {
+  //   final cellData = CellData.empty();
+  //   final cellWidth = _cellSize.width;
+
+  //   // TODO: refactor and optimize render
+  //   for (var i = 0; i < line.length; i++) {
+  //     line.getCellData(i, cellData);
+
+  //     final charWidth = cellData.content >> CellContent.widthShift;
+  //     final cellOffset = offset.translate(i * cellWidth, 0);
+
+  //     paintCellBackground(canvas, cellOffset, cellData);
+
+  //     if (charWidth == 2) {
+  //       i++;
+  //     }
+  //   }
+
+  //   final builder =
+  //       ParagraphBuilder(_textStyle.toTextStyle().getParagraphStyle());
+
+  //   // final paragraph = builder.build();
+  //   // paragraph.layout(ParagraphConstraints(width: double.infinity));
+
+  //   // _cache[key] = paragraph;
+  //   // return paragraph;
+  //   for (var i = 0; i < line.length; i++) {
+  //     line.getCellData(i, cellData);
+
+  //     final charWidth = cellData.content >> CellContent.widthShift;
+  //     // var _offset = offset.translate(i * cellWidth, 0);
+
+  //     // paintCellForeground(canvas, cellOffset, cellData);
+
+  //     final charCode = cellData.content & CellContent.codepointMask;
+  //     if (charCode == 0) {
+  //       builder.addText(" ");
+  //       continue;
+  //     }
+
+  //     // final cacheKey = cellData.getHash() ^ _textScaleFactor.hashCode;
+  //     // var paragraph = _paragraphCache.getLayoutFromCache(cacheKey);
+
+  //     // if (paragraph == null) {
+  //     final cellFlags = cellData.flags;
+
+  //     var color = cellFlags & CellFlags.inverse == 0
+  //         ? resolveForegroundColor(cellData.foreground)
+  //         : resolveBackgroundColor(cellData.background);
+
+  //     if (cellData.flags & CellFlags.faint != 0) {
+  //       color = color.withOpacity(0.5);
+  //     }
+
+  //     final style = _textStyle.toTextStyle(
+  //       color: color,
+  //       bold: cellFlags & CellFlags.bold != 0,
+  //       italic: cellFlags & CellFlags.italic != 0,
+  //       underline: cellFlags & CellFlags.underline != 0,
+  //     );
+
+  //     builder.pushStyle(style.getTextStyle(textScaleFactor: textScaleFactor));
+
+  //     // Flutter does not draw an underline below a space which is not between
+  //     // other regular characters. As only single characters are drawn, this
+  //     // will never produce an underline below a space in the terminal. As a
+  //     // workaround the regular space CodePoint 0x20 is replaced with
+  //     // the CodePoint 0xA0. This is a non breaking space and a underline can be
+  //     // drawn below it.
+  //     var char = String.fromCharCode(charCode);
+  //     if (cellFlags & CellFlags.underline != 0 && charCode == 0x20) {
+  //       char = String.fromCharCode(0xA0);
+  //     }
+
+  //     builder.addText(char);
+
+  //     if (charWidth == 2) {
+  //       i++;
+  //     }
+  //   }
+
+  //   var paragraph = builder.build();
+  //   paragraph.layout(ParagraphConstraints(width: double.infinity));
+
+  //   canvas.drawParagraph(paragraph, offset);
+  // }
 
   @pragma('vm:prefer-inline')
   void paintCell(Canvas canvas, Offset offset, CellData cellData) {

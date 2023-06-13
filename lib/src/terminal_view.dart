@@ -15,6 +15,7 @@ import 'package:xterm/src/ui/keyboard_listener.dart';
 import 'package:xterm/src/ui/keyboard_visibility.dart';
 import 'package:xterm/src/ui/render.dart';
 import 'package:xterm/src/ui/scroll_handler.dart';
+import 'package:xterm/src/ui/scroll_type.dart';
 import 'package:xterm/src/ui/shortcut/actions.dart';
 import 'package:xterm/src/ui/shortcut/shortcuts.dart';
 import 'package:xterm/src/ui/terminal_text_style.dart';
@@ -49,6 +50,7 @@ class TerminalView extends StatefulWidget {
     this.readOnly = false,
     this.hardwareKeyboardOnly = false,
     this.simulateScroll = true,
+    this.scrollType = TerminalScrollType.native,
   }) : super(key: key);
 
   /// The underlying terminal that this widget renders.
@@ -145,6 +147,8 @@ class TerminalView extends StatefulWidget {
   /// emulators. True by default.
   final bool simulateScroll;
 
+  final TerminalScrollType scrollType;
+
   @override
   State<TerminalView> createState() => TerminalViewState();
 }
@@ -224,6 +228,9 @@ class TerminalViewState extends State<TerminalView> {
     Widget child = Scrollable(
       key: _scrollableKey,
       controller: _scrollController,
+      physics: {
+        TerminalScrollType.perRow: ClampingScrollPhysics(),
+      }[widget.scrollType],
       viewportBuilder: (context, offset) {
         return _TerminalView(
           key: _viewportKey,
@@ -241,6 +248,7 @@ class TerminalViewState extends State<TerminalView> {
           alwaysShowCursor: widget.alwaysShowCursor,
           onEditableRect: _onEditableRect,
           composingText: _composingText,
+          scrollType: widget.scrollType,
         );
       },
     );
@@ -468,6 +476,7 @@ class _TerminalView extends LeafRenderObjectWidget {
     required this.focusNode,
     required this.cursorType,
     required this.alwaysShowCursor,
+    required this.scrollType,
     this.onEditableRect,
     this.composingText,
   }) : super(key: key);
@@ -498,6 +507,8 @@ class _TerminalView extends LeafRenderObjectWidget {
 
   final String? composingText;
 
+  final TerminalScrollType scrollType;
+
   @override
   RenderTerminal createRenderObject(BuildContext context) {
     return RenderTerminal(
@@ -514,6 +525,7 @@ class _TerminalView extends LeafRenderObjectWidget {
       alwaysShowCursor: alwaysShowCursor,
       onEditableRect: onEditableRect,
       composingText: composingText,
+      scrollType: scrollType,
     );
   }
 

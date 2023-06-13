@@ -1,4 +1,5 @@
 import 'package:xterm/src/core/mouse/mode.dart';
+import 'package:xterm/xterm.dart';
 
 abstract class EscapeHandler {
   void writeChar(int char);
@@ -44,6 +45,8 @@ abstract class EscapeHandler {
   void repeatPreviousCharacter(int n);
 
   void setCursor(int x, int y);
+
+  Function(TerminalCursorType cursorType)? onChangeCursorType;
 
   void setCursorX(int x);
 

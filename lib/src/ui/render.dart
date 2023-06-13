@@ -12,6 +12,7 @@ import 'package:xterm/src/terminal.dart';
 import 'package:xterm/src/ui/controller.dart';
 import 'package:xterm/src/ui/cursor_type.dart';
 import 'package:xterm/src/ui/painter.dart';
+import 'package:xterm/src/ui/scroll_type.dart';
 import 'package:xterm/src/ui/selection_mode.dart';
 import 'package:xterm/src/ui/terminal_size.dart';
 import 'package:xterm/src/ui/terminal_text_style.dart';
@@ -32,6 +33,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     required FocusNode focusNode,
     required TerminalCursorType cursorType,
     required bool alwaysShowCursor,
+    required TerminalScrollType scrollType,
     EditableRectCallback? onEditableRect,
     String? composingText,
   })  : _terminal = terminal,
@@ -44,6 +46,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
         _alwaysShowCursor = alwaysShowCursor,
         _onEditableRect = onEditableRect,
         _composingText = composingText,
+        _scrollType = scrollType,
         _painter = TerminalPainter(
           theme: theme,
           textStyle: textStyle,
@@ -151,10 +154,16 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
 
   final TerminalPainter _painter;
 
+  final TerminalScrollType _scrollType;
   var _stickToBottom = true;
 
   void _onScroll() {
-    _stickToBottom = _scrollOffset >= _maxScrollExtent;
+    if (_scrollType == TerminalScrollType.perRow) {
+      _stickToBottom = _scrollOffset >= (_maxScrollExtent - lineHeight);
+    } else {
+      _stickToBottom = _scrollOffset >= _maxScrollExtent;
+    }
+
     markNeedsLayout();
     _notifyEditableRect();
   }
@@ -164,6 +173,9 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
   }
 
   void _onTerminalChange() {
+    if (_stickToBottom) {
+      _offset.correctBy(_maxScrollExtent - _offset.pixels);
+    }
     markNeedsLayout();
     _notifyEditableRect();
   }
@@ -178,6 +190,10 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
   @override
   void attach(PipelineOwner owner) {
     super.attach(owner);
+    _terminal.onChangeCursorType = (cursorType) {
+      this.cursorType = cursorType;
+      markNeedsLayout();
+    };
     _offset.addListener(_onScroll);
     _terminal.addListener(_onTerminalChange);
     _controller.addListener(_onControllerUpdate);
@@ -211,10 +227,6 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     _updateViewportSize();
 
     _updateScrollOffset();
-
-    if (_stickToBottom) {
-      _offset.correctBy(_maxScrollExtent - _scrollOffset);
-    }
   }
 
   /// Total height of the terminal in pixels. Includes scrollback buffer.
@@ -224,7 +236,10 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
   /// The distance from the top of the terminal to the top of the viewport.
   // double get _scrollOffset => _offset.pixels;
   double get _scrollOffset {
-    // return _offset.pixels ~/ _painter.cellSize.height * _painter.cellSize.height;
+    if (_scrollType == TerminalScrollType.perRow) {
+      return (_offset.pixels / _painter.cellSize.height).ceil() *
+          _painter.cellSize.height;
+    }
     return _offset.pixels;
   }
 

@@ -5,6 +5,7 @@ import 'package:xterm/src/utils/ascii.dart';
 import 'package:xterm/src/utils/byte_consumer.dart';
 import 'package:xterm/src/utils/char_code.dart';
 import 'package:xterm/src/utils/lookup_table.dart';
+import 'package:xterm/xterm.dart';
 
 /// [EscapeParser] translates control characters and escape sequences into
 /// function calls that the terminal can handle.
@@ -280,6 +281,7 @@ class EscapeParser {
     'n'.codeUnitAt(0): _csiHandleDeviceStatusReport,
     'r'.codeUnitAt(0): _csiHandleSetMargins,
     't'.codeUnitAt(0): _csiWindowManipulation,
+    'q'.codeUnitAt(0): _csiSetCursorStyle,
     'A'.codeUnitAt(0): _csiHandleCursorUp,
     'B'.codeUnitAt(0): _csiHandleCursorDown,
     'C'.codeUnitAt(0): _csiHandleCursorForward,
@@ -298,6 +300,30 @@ class EscapeParser {
     'X'.codeUnitAt(0): _csiHandleEraseCharacters,
     '@'.codeUnitAt(0): _csiHandleInsertBlankCharacters,
   });
+
+  _csiSetCursorStyle() {
+    TerminalCursorType cursorType = TerminalCursorType.block;
+    final param = _csi.params.firstOrNull ?? 1;
+    switch (param) {
+      case 1:
+      case 2:
+        cursorType = TerminalCursorType.block;
+        break;
+      case 3:
+      case 4:
+        cursorType = TerminalCursorType.underline;
+        break;
+      case 5:
+      case 6:
+        cursorType = TerminalCursorType.verticalBar;
+        break;
+    }
+
+    final isBlinking = param % 2 == 1;
+    handler.setCursorBlinkMode(isBlinking);
+
+    handler.onChangeCursorType?.call(cursorType);
+  }
 
   /// `ESC [ Ps a` Cursor Horizontal Position Relative (HPR)
   ///

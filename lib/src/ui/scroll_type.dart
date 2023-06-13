@@ -1,0 +1,4 @@
+enum TerminalScrollType {
+  perRow,
+  native,
+}
