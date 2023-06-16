@@ -122,11 +122,18 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     markNeedsPaint();
   }
 
-  TerminalCursorType _cursorType;
+  late TerminalCursorType _internalCursorType = _cursorType;
+  set internalCursorType(TerminalCursorType value) {
+    if (value == _internalCursorType) return;
+    _internalCursorType = value;
+    markNeedsPaint();
+  }
+
+  late TerminalCursorType _cursorType;
   set cursorType(TerminalCursorType value) {
     if (value == _cursorType) return;
     _cursorType = value;
-    markNeedsPaint();
+    _internalCursorType = _cursorType;
   }
 
   bool _alwaysShowCursor;
@@ -191,7 +198,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
   void attach(PipelineOwner owner) {
     super.attach(owner);
     _terminal.onChangeCursorType = (cursorType) {
-      this.cursorType = cursorType;
+      internalCursorType = cursorType;
       markNeedsLayout();
     };
     _offset.addListener(_onScroll);
@@ -446,7 +453,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
         _painter.paintCursor(
           canvas,
           offset + cursorOffset,
-          cursorType: _cursorType,
+          cursorType: _internalCursorType,
           hasFocus: _focusNode.hasFocus,
         );
       }

@@ -906,5 +906,5 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
   }
 
   @override
-  Function(TerminalCursorType cursorType)? onChangeCursorType;
+  void Function(TerminalCursorType cursorType)? onChangeCursorType;
 }
