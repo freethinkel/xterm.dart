@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/rendering.dart';
+import 'package:xterm/src/ui/custom_glyphs.dart';
 import 'package:xterm/src/ui/palette_builder.dart';
 import 'package:xterm/src/ui/paragraph_cache.dart';
 import 'package:xterm/xterm.dart';
@@ -25,6 +26,7 @@ class TerminalPainter {
   /// cell no longer produces the same visual output. For example, when
   /// [_textStyle] is changed, or when the system font changes.
   final _paragraphCache = ParagraphCache(10240);
+  final _customGlyphsPainter = CustomGlyphPainter();
 
   TerminalStyle get textStyle => _textStyle;
   TerminalStyle _textStyle;
@@ -143,6 +145,7 @@ class TerminalPainter {
     Canvas canvas,
     Offset offset,
     BufferLine line,
+    bool customGlyphs,
   ) {
     final cellData = CellData.empty();
     final cellWidth = _cellSize.width;
@@ -165,7 +168,7 @@ class TerminalPainter {
       final charWidth = cellData.content >> CellContent.widthShift;
       final cellOffset = offset.translate(i * cellWidth, 0);
 
-      paintCellForeground(canvas, cellOffset, cellData);
+      paintCellForeground(canvas, cellOffset, cellData, customGlyphs);
 
       if (charWidth == 2) {
         i++;
@@ -266,15 +269,17 @@ class TerminalPainter {
   // }
 
   @pragma('vm:prefer-inline')
-  void paintCell(Canvas canvas, Offset offset, CellData cellData) {
+  void paintCell(
+      Canvas canvas, Offset offset, CellData cellData, bool customGlyphs) {
     paintCellBackground(canvas, offset, cellData);
-    paintCellForeground(canvas, offset, cellData);
+    paintCellForeground(canvas, offset, cellData, customGlyphs);
   }
 
   /// Paints the character in the cell represented by [cellData] to [canvas] at
   /// [offset].
   @pragma('vm:prefer-inline')
-  void paintCellForeground(Canvas canvas, Offset offset, CellData cellData) {
+  void paintCellForeground(
+      Canvas canvas, Offset offset, CellData cellData, bool customGlyphs) {
     final charCode = cellData.content & CellContent.codepointMask;
     if (charCode == 0) return;
 
@@ -308,6 +313,21 @@ class TerminalPainter {
       var char = String.fromCharCode(charCode);
       if (cellFlags & CellFlags.underline != 0 && charCode == 0x20) {
         char = String.fromCharCode(0xA0);
+      }
+
+      if (customGlyphs) {
+        final isDrew = _customGlyphsPainter.tryDrawCustomChar(
+          canvas: canvas,
+          char: char,
+          offset: offset,
+          cellSize: _cellSize,
+          devicePixelRatio: _textScaleFactor,
+          color: color,
+        );
+
+        if (isDrew) {
+          return;
+        }
       }
 
       paragraph = _paragraphCache.performAndCacheLayout(

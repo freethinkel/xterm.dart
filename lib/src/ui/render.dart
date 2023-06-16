@@ -34,6 +34,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     required TerminalCursorType cursorType,
     required bool alwaysShowCursor,
     required TerminalScrollType scrollType,
+    bool customGlyphs = false,
     EditableRectCallback? onEditableRect,
     String? composingText,
   })  : _terminal = terminal,
@@ -47,11 +48,14 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
         _onEditableRect = onEditableRect,
         _composingText = composingText,
         _scrollType = scrollType,
+        _customGlyphs = customGlyphs,
         _painter = TerminalPainter(
           theme: theme,
           textStyle: textStyle,
           textScaleFactor: textScaleFactor,
         );
+
+  bool _customGlyphs;
 
   Terminal _terminal;
   set terminal(Terminal terminal) {
@@ -440,6 +444,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
         canvas,
         offset.translate(0, (i * charHeight + _lineOffset).truncateToDouble()),
         lines[i],
+        _customGlyphs,
       );
     }
 

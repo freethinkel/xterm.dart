@@ -51,6 +51,7 @@ class TerminalView extends StatefulWidget {
     this.hardwareKeyboardOnly = false,
     this.simulateScroll = true,
     this.scrollType = TerminalScrollType.native,
+    this.customGlyphs = false,
   }) : super(key: key);
 
   /// The underlying terminal that this widget renders.
@@ -148,6 +149,8 @@ class TerminalView extends StatefulWidget {
   final bool simulateScroll;
 
   final TerminalScrollType scrollType;
+
+  final bool customGlyphs;
 
   @override
   State<TerminalView> createState() => TerminalViewState();
@@ -249,6 +252,7 @@ class TerminalViewState extends State<TerminalView> {
           onEditableRect: _onEditableRect,
           composingText: _composingText,
           scrollType: widget.scrollType,
+          customGlyphs: widget.customGlyphs,
         );
       },
     );
@@ -477,6 +481,7 @@ class _TerminalView extends LeafRenderObjectWidget {
     required this.cursorType,
     required this.alwaysShowCursor,
     required this.scrollType,
+    this.customGlyphs = false,
     this.onEditableRect,
     this.composingText,
   }) : super(key: key);
@@ -503,6 +508,8 @@ class _TerminalView extends LeafRenderObjectWidget {
 
   final bool alwaysShowCursor;
 
+  final bool customGlyphs;
+
   final EditableRectCallback? onEditableRect;
 
   final String? composingText;
@@ -526,6 +533,7 @@ class _TerminalView extends LeafRenderObjectWidget {
       onEditableRect: onEditableRect,
       composingText: composingText,
       scrollType: scrollType,
+      customGlyphs: customGlyphs,
     );
   }
 
