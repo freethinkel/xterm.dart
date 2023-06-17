@@ -71,7 +71,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     if (_verticalLineOffset == value) {
       return;
     }
-    verticalLineOffset = value;
+    _verticalLineOffset = value;
     markNeedsLayout();
   }
 
