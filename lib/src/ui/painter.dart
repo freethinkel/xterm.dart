@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:xterm/src/ui/custom_glyphs.dart';
 import 'package:xterm/src/ui/palette_builder.dart';
@@ -146,6 +147,7 @@ class TerminalPainter {
     Offset offset,
     BufferLine line,
     bool customGlyphs,
+    double verticalLineOffset,
   ) {
     final cellData = CellData.empty();
     final cellWidth = _cellSize.width;
@@ -168,7 +170,13 @@ class TerminalPainter {
       final charWidth = cellData.content >> CellContent.widthShift;
       final cellOffset = offset.translate(i * cellWidth, 0);
 
-      paintCellForeground(canvas, cellOffset, cellData, customGlyphs);
+      paintCellForeground(
+        canvas,
+        cellOffset,
+        cellData,
+        customGlyphs,
+        verticalLineOffset,
+      );
 
       if (charWidth == 2) {
         i++;
@@ -270,16 +278,32 @@ class TerminalPainter {
 
   @pragma('vm:prefer-inline')
   void paintCell(
-      Canvas canvas, Offset offset, CellData cellData, bool customGlyphs) {
+    Canvas canvas,
+    Offset offset,
+    CellData cellData,
+    bool customGlyphs,
+    double verticalLineOffset,
+  ) {
     paintCellBackground(canvas, offset, cellData);
-    paintCellForeground(canvas, offset, cellData, customGlyphs);
+    paintCellForeground(
+      canvas,
+      offset,
+      cellData,
+      customGlyphs,
+      verticalLineOffset,
+    );
   }
 
   /// Paints the character in the cell represented by [cellData] to [canvas] at
   /// [offset].
   @pragma('vm:prefer-inline')
   void paintCellForeground(
-      Canvas canvas, Offset offset, CellData cellData, bool customGlyphs) {
+    Canvas canvas,
+    Offset offset,
+    CellData cellData,
+    bool customGlyphs,
+    double verticalLineOffset,
+  ) {
     final charCode = cellData.content & CellContent.codepointMask;
     if (charCode == 0) return;
 
@@ -297,12 +321,16 @@ class TerminalPainter {
         color = color.withOpacity(0.5);
       }
 
-      final style = _textStyle.toTextStyle(
-        color: color,
-        bold: cellFlags & CellFlags.bold != 0,
-        italic: cellFlags & CellFlags.italic != 0,
-        underline: cellFlags & CellFlags.underline != 0,
-      );
+      final style = _textStyle
+          .toTextStyle(
+            color: color,
+            bold: cellFlags & CellFlags.bold != 0,
+            italic: cellFlags & CellFlags.italic != 0,
+            underline: cellFlags & CellFlags.underline != 0,
+          )
+          .copyWith(
+            height: _textStyle.height - verticalLineOffset,
+          );
 
       // Flutter does not draw an underline below a space which is not between
       // other regular characters. As only single characters are drawn, this

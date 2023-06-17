@@ -52,6 +52,7 @@ class TerminalView extends StatefulWidget {
     this.simulateScroll = true,
     this.scrollType = TerminalScrollType.native,
     this.customGlyphs = false,
+    this.verticalLineOffset = 0,
   }) : super(key: key);
 
   /// The underlying terminal that this widget renders.
@@ -151,6 +152,8 @@ class TerminalView extends StatefulWidget {
   final TerminalScrollType scrollType;
 
   final bool customGlyphs;
+
+  final double verticalLineOffset;
 
   @override
   State<TerminalView> createState() => TerminalViewState();
@@ -253,6 +256,7 @@ class TerminalViewState extends State<TerminalView> {
           composingText: _composingText,
           scrollType: widget.scrollType,
           customGlyphs: widget.customGlyphs,
+          verticalLineOffset: widget.verticalLineOffset,
         );
       },
     );
@@ -482,6 +486,7 @@ class _TerminalView extends LeafRenderObjectWidget {
     required this.alwaysShowCursor,
     required this.scrollType,
     this.customGlyphs = false,
+    this.verticalLineOffset = 0,
     this.onEditableRect,
     this.composingText,
   }) : super(key: key);
@@ -510,6 +515,8 @@ class _TerminalView extends LeafRenderObjectWidget {
 
   final bool customGlyphs;
 
+  final double verticalLineOffset;
+
   final EditableRectCallback? onEditableRect;
 
   final String? composingText;
@@ -534,6 +541,7 @@ class _TerminalView extends LeafRenderObjectWidget {
       composingText: composingText,
       scrollType: scrollType,
       customGlyphs: customGlyphs,
+      verticalLineOffset: verticalLineOffset,
     );
   }
 
@@ -552,6 +560,8 @@ class _TerminalView extends LeafRenderObjectWidget {
       ..cursorType = cursorType
       ..alwaysShowCursor = alwaysShowCursor
       ..onEditableRect = onEditableRect
-      ..composingText = composingText;
+      ..composingText = composingText
+      ..verticalLineOffset = verticalLineOffset
+      ..customGlyphs = customGlyphs;
   }
 }

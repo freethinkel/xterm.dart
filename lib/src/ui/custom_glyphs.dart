@@ -668,15 +668,16 @@ class CustomGlyphPainter {
   };
 
   List<double> translateArgs(
-      List<String> args,
-      double cellWidth,
-      double cellHeight,
-      double xOffset,
-      double yOffset,
-      bool doClamp,
-      double devicePixelRatio,
-      double leftPadding,
-      double rightPadding) {
+    List<String> args,
+    double cellWidth,
+    double cellHeight,
+    double xOffset,
+    double yOffset,
+    bool doClamp,
+    double devicePixelRatio,
+    double leftPadding,
+    double rightPadding,
+  ) {
     final result = args.map((e) => double.parse(e)).toList();
 
     if (result.length < 2) {
@@ -707,7 +708,7 @@ class CustomGlyphPainter {
         try {
           result[y] = ((result[y] + 0.5).round() - 0.5).clamp(0, cellHeight);
         } catch (err) {
-          print("$err ::: ${result[y]} ${cellHeight}");
+          print("$err ::: ${result[y]} $cellHeight");
         }
         // result[y] = clamp(Math.round(result[y] + 0.5) - 0.5, cellHeight, 0);
       }
