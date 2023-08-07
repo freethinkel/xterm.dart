@@ -351,6 +351,7 @@ class TerminalPainter {
           cellSize: _cellSize,
           devicePixelRatio: _textScaleFactor,
           color: color,
+          fontSize: style.fontSize ?? 10,
         );
 
         if (isDrew) {

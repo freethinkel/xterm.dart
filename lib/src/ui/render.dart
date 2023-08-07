@@ -94,6 +94,8 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     markNeedsLayout();
   }
 
+  TerminalController get controller => _controller;
+
   ViewportOffset _offset;
   set offset(ViewportOffset value) {
     if (value == _offset) return;

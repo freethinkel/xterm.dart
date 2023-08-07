@@ -20,6 +20,8 @@ class TerminalGestureDetector extends StatefulWidget {
     this.onDragStart,
     this.onDragUpdate,
     this.onDoubleTapDown,
+    this.onDragEnd,
+    this.onDragCancel,
   });
 
   final Widget? child;
@@ -49,6 +51,9 @@ class TerminalGestureDetector extends StatefulWidget {
   final GestureDragStartCallback? onDragStart;
 
   final GestureDragUpdateCallback? onDragUpdate;
+
+  final GestureDragCancelCallback? onDragCancel;
+  final GestureDragEndCallback? onDragEnd;
 
   @override
   State<TerminalGestureDetector> createState() =>
@@ -149,7 +154,9 @@ class _TerminalGestureDetectorState extends State<TerminalGestureDetector> {
         instance
           ..dragStartBehavior = DragStartBehavior.down
           ..onStart = widget.onDragStart
-          ..onUpdate = widget.onDragUpdate;
+          ..onUpdate = widget.onDragUpdate
+          ..onEnd = widget.onDragEnd
+          ..onCancel = widget.onDragCancel;
       },
     );
 

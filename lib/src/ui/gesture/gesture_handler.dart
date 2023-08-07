@@ -76,12 +76,16 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
       onDragStart: onDragStart,
       onDragUpdate: onDragUpdate,
       onDoubleTapDown: onDoubleTapDown,
+      onDragCancel: onDragCancel,
+      onDragEnd: onDragEnd,
     );
   }
 
   bool get _shouldSendTapEvent =>
       !widget.readOnly &&
       widget.terminalController.shouldSendPointerInput(PointerInput.tap);
+
+  DragUpdateDetails? _prevDragDetails;
 
   void _tapDown(
     GestureTapDownCallback? callback,
@@ -136,6 +140,20 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
     );
   }
 
+  _drag(
+    DragUpdateDetails details,
+    TerminalMouseButton button,
+  ) {
+    if (_shouldSendTapEvent) {
+      return renderTerminal.mouseEvent(
+        button,
+        TerminalMouseButtonState.down,
+        details.localPosition,
+      );
+    }
+    return false;
+  }
+
   void onSingleTapUp(TapUpDetails details) {
     _tapUp(widget.onSingleTapUp, details, TerminalMouseButton.left);
   }
@@ -183,9 +201,30 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
   }
 
   void onDragUpdate(DragUpdateDetails details) {
+    var handled = _drag(details, TerminalMouseButton.drag);
+    _prevDragDetails = details;
+    if (handled) {
+      renderTerminal.markNeedsPaint();
+      renderTerminal.markNeedsLayout();
+      if (renderTerminal.controller.selection != null) {
+        renderTerminal.controller.clearSelection();
+      }
+      return;
+    }
     renderTerminal.selectCharacters(
       _lastDragStartDetails!.localPosition,
       details.localPosition,
     );
+  }
+
+  void onDragCancel() {}
+  void onDragEnd(DragEndDetails details) {
+    if (_shouldSendTapEvent) {
+      renderTerminal.mouseEvent(
+        TerminalMouseButton.left,
+        TerminalMouseButtonState.up,
+        _prevDragDetails!.localPosition,
+      );
+    }
   }
 }

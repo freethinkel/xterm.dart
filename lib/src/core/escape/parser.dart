@@ -57,6 +57,7 @@ class EscapeParser {
 
     final sbcHandler = _sbcHandlers[char];
     if (sbcHandler == null) {
+      print("unkownEscape");
       handler.unkownEscape(char);
       return;
     }

@@ -2,6 +2,8 @@
 
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
+
 class Box {
   Box({
     required this.h,
@@ -54,6 +56,8 @@ class Style {
   static const NORMAL = 1.0;
   static const BOLD = 3.0;
 }
+
+enum VectorType { FILL, STROKE }
 
 class CustomGlyphPainter {
   final blockElementDefinitions = {
@@ -654,6 +658,94 @@ class CustomGlyphPainter {
     },
   };
 
+  final powerlineDefinitions = {
+    // Right triangle solid
+    '\u{E0B0}': {
+      "d": 'M0,0 L1,.5 L0,1',
+      "type": VectorType.FILL,
+      "rightPadding": 2
+    },
+    // Right triangle line
+    '\u{E0B1}': {
+      "d": 'M-1,-.5 L1,.5 L-1,1.5',
+      "type": VectorType.STROKE,
+      "leftPadding": 1,
+      "rightPadding": 1
+    },
+    // Left triangle solid
+    '\u{E0B2}': {
+      "d": 'M1,0 L0,.5 L1,1',
+      "type": VectorType.FILL,
+      "leftPadding": 2
+    },
+    // Left triangle line
+    '\u{E0B3}': {
+      "d": 'M2,-.5 L0,.5 L2,1.5',
+      "type": VectorType.STROKE,
+      "leftPadding": 1,
+      "rightPadding": 1
+    },
+    // Right semi-circle solid
+    '\u{E0B4}': {
+      "d": 'M0,0 L0,1 C0.552,1,1,0.776,1,.5 C1,0.224,0.552,0,0,0',
+      "type": VectorType.FILL,
+      "rightPadding": 1
+    },
+    // Right semi-circle line
+    '\u{E0B5}': {
+      "d": 'M0,1 C0.552,1,1,0.776,1,.5 C1,0.224,0.552,0,0,0',
+      "type": VectorType.STROKE,
+      "rightPadding": 1
+    },
+    // Left semi-circle solid
+    '\u{E0B6}': {
+      "d": 'M1,0 L1,1 C0.448,1,0,0.776,0,.5 C0,0.224,0.448,0,1,0',
+      "type": VectorType.FILL,
+      "leftPadding": 1
+    },
+    // Left semi-circle line
+    '\u{E0B7}': {
+      "d": 'M1,1 C0.448,1,0,0.776,0,.5 C0,0.224,0.448,0,1,0',
+      "type": VectorType.STROKE,
+      "leftPadding": 1
+    },
+    // Lower left triangle
+    '\u{E0B8}': {"d": 'M-.5,-.5 L1.5,1.5 L-.5,1.5', "type": VectorType.FILL},
+    // Backslash separator
+    '\u{E0B9}': {
+      "d": 'M-.5,-.5 L1.5,1.5',
+      "type": VectorType.STROKE,
+      "leftPadding": 1,
+      "rightPadding": 1
+    },
+    // Lower right triangle
+    '\u{E0BA}': {"d": 'M1.5,-.5 L-.5,1.5 L1.5,1.5', "type": VectorType.FILL},
+    // Upper left triangle
+    '\u{E0BC}': {"d": 'M1.5,-.5 L-.5,1.5 L-.5,-.5', "type": VectorType.FILL},
+    // Forward slash separator
+    '\u{E0BD}': {
+      "d": 'M1.5,-.5 L-.5,1.5',
+      "type": VectorType.STROKE,
+      "leftPadding": 1,
+      "rightPadding": 1
+    },
+    // Upper right triangle
+    '\u{E0BE}': {"d": 'M-.5,-.5 L1.5,1.5 L1.5,-.5', "type": VectorType.FILL},
+    '\u{E0BB}': {
+      "d": 'M1.5,-.5 L-.5,1.5',
+      "type": VectorType.STROKE,
+      "leftPadding": 1,
+      "rightPadding": 1,
+    },
+    // Backslash separator redundant
+    '\u{E0BF}': {
+      "d": 'M-.5,-.5 L1.5,1.5',
+      "type": VectorType.STROKE,
+      "leftPadding": 1,
+      "rightPadding": 1,
+    },
+  };
+
   Map<String, void Function(Path, List<double>)> svgToCanvasInstructionMap = {
     'C': (Path ctx, List<double> args) => ctx.cubicTo(
           args[0],
@@ -811,12 +903,71 @@ class CustomGlyphPainter {
     }
   }
 
+  void drawPowerlineChar({
+    required Canvas canvas,
+    required dynamic charDefinition,
+    required Offset offset,
+    required Size cellSize,
+    required double devicePixelRatio,
+    required Color color,
+    required double fontSize,
+  }) {
+    canvas.save();
+    final path = Path();
+    final paint = Paint();
+    canvas.clipRect(offset & cellSize);
+
+    // Scale the stroke with DPR and font size
+    final cssLineWidth = fontSize / 12;
+    paint.color = color;
+    paint.strokeWidth = devicePixelRatio * cssLineWidth;
+
+    for (final instruction in charDefinition['d'].split(' ')) {
+      final type = instruction[0];
+      final f = svgToCanvasInstructionMap[type];
+      if (f == null) {
+        // console.error(`Could not find drawing instructions for "${type}"`);
+        continue;
+      }
+      final args = (instruction as String).substring(1).split(',');
+      if (args.isEmpty || args.length < 2) {
+        continue;
+      }
+      f(
+        path,
+        translateArgs(
+          args,
+          cellSize.width,
+          cellSize.height,
+          offset.dx,
+          offset.dy,
+          false,
+          devicePixelRatio,
+          (charDefinition['leftPadding'] ?? 0) * (cssLineWidth / 2),
+          (charDefinition['rightPadding'] ?? 0) * (cssLineWidth / 2),
+        ),
+      );
+    }
+    if (charDefinition['type'] == VectorType.STROKE) {
+      paint.style = PaintingStyle.stroke;
+      // path.strokeStyle = ctx.fillStyle;
+      // ctx.stroke();
+    } else {
+      paint.style = PaintingStyle.fill;
+      // ctx.fill();
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+    canvas.restore();
+  }
+
   bool tryDrawCustomChar({
     required Canvas canvas,
     required String char,
     required Offset offset,
     required Size cellSize,
     required double devicePixelRatio,
+    required double fontSize,
     required Color color,
   }) {
     final blockElementDefinition = blockElementDefinitions[char];
@@ -838,6 +989,20 @@ class CustomGlyphPainter {
         charDefinition: boxDrawingDefinition,
         offset: offset,
         cellSize: cellSize,
+        devicePixelRatio: devicePixelRatio,
+        color: color,
+      );
+      return true;
+    }
+
+    final powerlineDefinition = powerlineDefinitions[char];
+    if (powerlineDefinition != null) {
+      drawPowerlineChar(
+        canvas: canvas,
+        charDefinition: powerlineDefinition,
+        cellSize: cellSize,
+        offset: offset,
+        fontSize: fontSize,
         devicePixelRatio: devicePixelRatio,
         color: color,
       );
