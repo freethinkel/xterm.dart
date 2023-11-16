@@ -53,7 +53,7 @@ class TerminalActions extends StatelessWidget {
             controller.setSelection(
               terminal.buffer.createAnchor(
                 0,
-                terminal.buffer.height - terminal.viewHeight,
+                0,
               ),
               terminal.buffer.createAnchor(
                 terminal.viewWidth,

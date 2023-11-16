@@ -99,15 +99,9 @@ class TerminalPainter {
       ..color = _theme.cursor
       ..strokeWidth = 1;
 
-    if (!hasFocus) {
-      paint.style = PaintingStyle.stroke;
-      canvas.drawRect(offset & _cellSize, paint);
-      return;
-    }
-
     switch (cursorType) {
       case TerminalCursorType.block:
-        paint.style = PaintingStyle.fill;
+        paint.style = !hasFocus ? PaintingStyle.stroke : PaintingStyle.fill;
         canvas.drawRect(offset & _cellSize, paint);
         return;
       case TerminalCursorType.underline:
