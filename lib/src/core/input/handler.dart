@@ -192,9 +192,9 @@ class AltInputHandler implements TerminalInputHandler {
       return null;
     }
 
-    if (event.platform == TerminalTargetPlatform.macos) {
-      return null;
-    }
+    // if (event.platform == TerminalTargetPlatform.macos) {
+    //   return null;
+    // }
 
     final key = event.key;
 
@@ -202,6 +202,7 @@ class AltInputHandler implements TerminalInputHandler {
         key.index <= TerminalKey.keyZ.index) {
       final charCode = key.index - TerminalKey.keyA.index + 65;
       final input = [0x1b, charCode];
+      print(String.fromCharCodes(input));
       return String.fromCharCodes(input);
     }
 

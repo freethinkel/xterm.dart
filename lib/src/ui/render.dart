@@ -36,6 +36,8 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     required TerminalScrollType scrollType,
     bool customGlyphs = false,
     double verticalLineOffset = 0,
+    double cellBackgroundOpacity = 1,
+    bool transparentBackgroundCells = false,
     EditableRectCallback? onEditableRect,
     String? composingText,
   })  : _terminal = terminal,
@@ -51,11 +53,32 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
         _scrollType = scrollType,
         _customGlyphs = customGlyphs,
         _verticalLineOffset = verticalLineOffset,
+        _transparentBackgroundCells = transparentBackgroundCells,
+        _cellBackgroundOpacity = cellBackgroundOpacity,
         _painter = TerminalPainter(
           theme: theme,
           textStyle: textStyle,
           textScaleFactor: textScaleFactor,
         );
+
+  double _cellBackgroundOpacity;
+  set cellBackgroundOpacity(double value) {
+    if (_cellBackgroundOpacity == value) {
+      return;
+    }
+    _cellBackgroundOpacity = value;
+    markNeedsLayout();
+  }
+
+  bool _transparentBackgroundCells;
+  set transparentBackgroundCells(bool value) {
+    if (_transparentBackgroundCells == value) {
+      return;
+    }
+
+    _transparentBackgroundCells = value;
+    markNeedsLayout();
+  }
 
   bool _customGlyphs;
   set customGlyphs(bool value) {
@@ -482,6 +505,8 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
         lines[i],
         _customGlyphs,
         _verticalLineOffset,
+        cellBackgroundOpacity: _cellBackgroundOpacity,
+        transparentBackgroundCells: _transparentBackgroundCells,
       );
     }
 

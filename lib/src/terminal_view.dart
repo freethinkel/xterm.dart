@@ -53,6 +53,8 @@ class TerminalView extends StatefulWidget {
     this.scrollType = TerminalScrollType.native,
     this.customGlyphs = false,
     this.verticalLineOffset = 0,
+    this.transparentBackgroundCells = false,
+    this.cellBackgroundOpacity = 1,
   }) : super(key: key);
 
   /// The underlying terminal that this widget renders.
@@ -154,6 +156,10 @@ class TerminalView extends StatefulWidget {
   final bool customGlyphs;
 
   final double verticalLineOffset;
+
+  final bool transparentBackgroundCells;
+
+  final double cellBackgroundOpacity;
 
   @override
   State<TerminalView> createState() => TerminalViewState();
@@ -257,6 +263,8 @@ class TerminalViewState extends State<TerminalView> {
           scrollType: widget.scrollType,
           customGlyphs: widget.customGlyphs,
           verticalLineOffset: widget.verticalLineOffset,
+          cellBackgroundOpacity: widget.cellBackgroundOpacity,
+          transparentBackgroundCells: widget.transparentBackgroundCells,
         );
       },
     );
@@ -487,6 +495,8 @@ class _TerminalView extends LeafRenderObjectWidget {
     required this.scrollType,
     this.customGlyphs = false,
     this.verticalLineOffset = 0,
+    this.cellBackgroundOpacity = 1,
+    this.transparentBackgroundCells = false,
     this.onEditableRect,
     this.composingText,
   }) : super(key: key);
@@ -517,6 +527,10 @@ class _TerminalView extends LeafRenderObjectWidget {
 
   final double verticalLineOffset;
 
+  final double cellBackgroundOpacity;
+
+  final bool transparentBackgroundCells;
+
   final EditableRectCallback? onEditableRect;
 
   final String? composingText;
@@ -542,6 +556,8 @@ class _TerminalView extends LeafRenderObjectWidget {
       scrollType: scrollType,
       customGlyphs: customGlyphs,
       verticalLineOffset: verticalLineOffset,
+      cellBackgroundOpacity: cellBackgroundOpacity,
+      transparentBackgroundCells: transparentBackgroundCells,
     );
   }
 
@@ -562,6 +578,8 @@ class _TerminalView extends LeafRenderObjectWidget {
       ..onEditableRect = onEditableRect
       ..composingText = composingText
       ..verticalLineOffset = verticalLineOffset
-      ..customGlyphs = customGlyphs;
+      ..customGlyphs = customGlyphs
+      ..cellBackgroundOpacity = cellBackgroundOpacity
+      ..transparentBackgroundCells = transparentBackgroundCells;
   }
 }

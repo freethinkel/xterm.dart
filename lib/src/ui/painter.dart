@@ -141,8 +141,10 @@ class TerminalPainter {
     Offset offset,
     BufferLine line,
     bool customGlyphs,
-    double verticalLineOffset,
-  ) {
+    double verticalLineOffset, {
+    required double cellBackgroundOpacity,
+    required bool transparentBackgroundCells,
+  }) {
     final cellData = CellData.empty();
     final cellWidth = _cellSize.width;
 
@@ -152,7 +154,13 @@ class TerminalPainter {
       final charWidth = cellData.content >> CellContent.widthShift;
       final cellOffset = offset.translate(i * cellWidth, 0);
 
-      paintCellBackground(canvas, cellOffset, cellData);
+      paintCellBackground(
+        canvas,
+        cellOffset,
+        cellData,
+        cellBackgroundOpacity: cellBackgroundOpacity,
+        transparentBackgroundCells: transparentBackgroundCells,
+      );
 
       if (charWidth == 2) {
         i++;
@@ -276,9 +284,17 @@ class TerminalPainter {
     Offset offset,
     CellData cellData,
     bool customGlyphs,
-    double verticalLineOffset,
-  ) {
-    paintCellBackground(canvas, offset, cellData);
+    double verticalLineOffset, {
+    required double cellBackgroundOpacity,
+    required bool transparentBackgroundCells,
+  }) {
+    paintCellBackground(
+      canvas,
+      offset,
+      cellData,
+      cellBackgroundOpacity: cellBackgroundOpacity,
+      transparentBackgroundCells: transparentBackgroundCells,
+    );
     paintCellForeground(
       canvas,
       offset,
@@ -367,7 +383,13 @@ class TerminalPainter {
   /// Paints the background of a cell represented by [cellData] to [canvas] at
   /// [offset].
   @pragma('vm:prefer-inline')
-  void paintCellBackground(Canvas canvas, Offset offset, CellData cellData) {
+  void paintCellBackground(
+    Canvas canvas,
+    Offset offset,
+    CellData cellData, {
+    required double cellBackgroundOpacity,
+    required bool transparentBackgroundCells,
+  }) {
     late Color color;
     final colorType = cellData.background & CellColor.typeMask;
 
@@ -377,12 +399,18 @@ class TerminalPainter {
       return;
     } else {
       color = resolveBackgroundColor(cellData.background);
+
+      if (transparentBackgroundCells && color == _theme.background) {
+        color = color.withOpacity(0);
+      } else {
+        color = color.withOpacity(cellBackgroundOpacity.clamp(0, 1));
+      }
     }
 
     final paint = Paint()..color = color;
     final doubleWidth = cellData.content >> CellContent.widthShift == 2;
     final widthScale = doubleWidth ? 2 : 1;
-    final size = Size(_cellSize.width * widthScale + 1, _cellSize.height);
+    final size = Size(_cellSize.width * widthScale, _cellSize.height);
     canvas.drawRect(offset & size, paint);
   }
 
