@@ -27,6 +27,7 @@ import 'package:xterm/xterm.dart';
 /// translating user input into escape sequences that the application can
 /// understand.
 class Terminal with Observable implements TerminalState, EscapeHandler {
+// Terminal();
   /// The number of lines that the scrollback buffer can hold. If the buffer
   /// exceeds this size, the lines at the top of the buffer will be removed.
   final int maxLines;
@@ -79,12 +80,18 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     this.onOutput,
     this.onResize,
     this.platform = TerminalTargetPlatform.unknown,
-    this.inputHandler = defaultInputHandler,
     this.mouseHandler = defaultMouseHandler,
     this.onPrivateOSC,
     this.reflowEnabled = true,
     this.wordSeparators,
-  });
+    this.macOptionIsMeta = false,
+    TerminalInputHandler? inputHandler,
+  }) {
+    this.inputHandler =
+        inputHandler ?? defaultInputHandler(macOptionIsMeta: macOptionIsMeta);
+  }
+
+  bool macOptionIsMeta;
 
   late final _parser = EscapeParser(this);
 
@@ -885,6 +892,7 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
 
   @override
   void unsupportedStyle(int param) {
+    // print("unsupportedStyle $param");
     // no-op
   }
 

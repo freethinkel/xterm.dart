@@ -1,7 +1,11 @@
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:xterm/src/core/input/keys.dart';
 import 'package:xterm/src/core/input/keytab/keytab.dart';
 import 'package:xterm/src/core/state.dart';
 import 'package:xterm/src/core/platform.dart';
+import 'package:xterm/src/utils/ascii.dart';
 
 /// The key event received from the keyboard, along with the state of the
 /// modifier keys and state of the terminal. Typically consumed by the
@@ -93,11 +97,12 @@ class CascadeInputHandler implements TerminalInputHandler {
 ///
 /// See also:
 ///  * [CascadeInputHandler]
-const defaultInputHandler = CascadeInputHandler([
-  KeytabInputHandler(),
-  CtrlInputHandler(),
-  AltInputHandler(),
-]);
+final defaultInputHandler =
+    ({bool macOptionIsMeta = false}) => CascadeInputHandler([
+          KeytabInputHandler(),
+          CtrlInputHandler(),
+          AltInputHandler(macOptionIsMeta: macOptionIsMeta),
+        ]);
 
 /// A [TerminalInputHandler] that translates key events according to a keytab
 /// file. If no keytab is provided, [Keytab.defaultKeytab] is used.
@@ -184,7 +189,11 @@ class CtrlInputHandler implements TerminalInputHandler {
 /// A [TerminalInputHandler] that translates alt + key events into escape
 /// sequences. For example, alt + a becomes ^[a.
 class AltInputHandler implements TerminalInputHandler {
-  const AltInputHandler();
+  const AltInputHandler({
+    this.macOptionIsMeta = false,
+  });
+
+  final bool macOptionIsMeta;
 
   @override
   String? call(TerminalKeyboardEvent event) {
@@ -192,17 +201,14 @@ class AltInputHandler implements TerminalInputHandler {
       return null;
     }
 
-    // if (event.platform == TerminalTargetPlatform.macos) {
-    //   return null;
-    // }
-
     final key = event.key;
 
     if (key.index >= TerminalKey.keyA.index &&
         key.index <= TerminalKey.keyZ.index) {
-      final charCode = key.index - TerminalKey.keyA.index + 65;
+      final charCode =
+          key.index - TerminalKey.keyA.index + 65 + (macOptionIsMeta ? 32 : 0);
+
       final input = [0x1b, charCode];
-      print(String.fromCharCodes(input));
       return String.fromCharCodes(input);
     }
 

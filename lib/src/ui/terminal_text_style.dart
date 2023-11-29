@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 const _kDefaultFontSize = 13.0;
@@ -57,6 +58,7 @@ class TerminalStyle {
     bool bold = false,
     bool italic = false,
     bool underline = false,
+    bool undercurl = false,
   }) {
     return TextStyle(
       fontSize: fontSize,

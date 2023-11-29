@@ -320,6 +320,21 @@ class TerminalPainter {
     final cacheKey = cellData.getHash() ^ _textScaleFactor.hashCode;
     var paragraph = _paragraphCache.getLayoutFromCache(cacheKey);
 
+    if (cellData.flags & CellFlags.underline != 0) {
+      var color = cellData.flags & CellFlags.inverse == 0
+          ? resolveForegroundColor(cellData.foreground)
+          : resolveBackgroundColor(cellData.background);
+      final doubleWidth = cellData.content >> CellContent.widthShift == 2;
+      final widthScale = doubleWidth ? 2 : 1;
+      final size = Size(_cellSize.width * widthScale, _cellSize.height);
+      final yOffset = size.height - (size.height * 0.1);
+      canvas.drawLine(
+        offset.translate(0, yOffset),
+        offset.translate(size.width, yOffset),
+        Paint()..color = color,
+      );
+    }
+
     if (paragraph == null) {
       final cellFlags = cellData.flags;
 
@@ -336,7 +351,7 @@ class TerminalPainter {
             color: color,
             bold: cellFlags & CellFlags.bold != 0,
             italic: cellFlags & CellFlags.italic != 0,
-            underline: cellFlags & CellFlags.underline != 0,
+            // underline: cellFlags & CellFlags.underline != 0,
           )
           .copyWith(
             height: _textStyle.height - verticalLineOffset,
