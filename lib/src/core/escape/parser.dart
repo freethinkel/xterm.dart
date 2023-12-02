@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
 import 'package:xterm/src/core/color.dart';
 import 'package:xterm/src/core/mouse/mode.dart';
 import 'package:xterm/src/core/escape/handler.dart';
@@ -1098,6 +1101,17 @@ class EscapeParser {
           return true;
         case '2':
           handler.setTitle(pt);
+          return true;
+        case "52":
+          try {
+            Clipboard.setData(
+              ClipboardData(
+                text: String.fromCharCodes(
+                  base64.decode(_osc[2]),
+                ),
+              ),
+            );
+          } catch (err) {}
           return true;
       }
     }
