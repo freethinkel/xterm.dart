@@ -49,11 +49,11 @@ class TerminalView extends StatefulWidget {
     this.readOnly = false,
     this.hardwareKeyboardOnly = false,
     this.simulateScroll = true,
-    this.scrollType = TerminalScrollType.native,
-    this.customGlyphs = false,
-    this.verticalLineOffset = 0,
-    this.transparentBackgroundCells = false,
+    this.customGlyphs = true,
     this.cellBackgroundOpacity = 1,
+    this.scrollType = TerminalScrollType.perRow,
+    this.transparentBackgroundCells = false,
+    this.verticalLineOffset = 0,
   });
 
   /// The underlying terminal that this widget renders.
@@ -288,9 +288,7 @@ class TerminalViewState extends State<TerminalView> {
         onComposing: _onComposing,
         onAction: (action) {
           _scrollToBottom();
-          // Android sends TextInputAction.newline when the user presses the virtual keyboard's enter key.
-          if (action == TextInputAction.done ||
-              action == TextInputAction.newline) {
+          if (action == TextInputAction.done) {
             widget.terminal.keyInput(TerminalKey.enter);
           }
         },
