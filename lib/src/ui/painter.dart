@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/painting.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -12,10 +13,10 @@ class TerminalPainter {
   TerminalPainter({
     required TerminalTheme theme,
     required TerminalStyle textStyle,
-    required double textScaleFactor,
+    required TextScaler textScaler,
   })  : _textStyle = textStyle,
         _theme = theme,
-        _textScaleFactor = textScaleFactor;
+        _textScaler = textScaler;
 
   /// A lookup table from terminal colors to Flutter colors.
   late var _colorPalette = PaletteBuilder(_theme).build();
@@ -38,11 +39,11 @@ class TerminalPainter {
     _paragraphCache.clear();
   }
 
-  double get textScaleFactor => _textScaleFactor;
-  double _textScaleFactor = 1.0;
-  set textScaleFactor(double value) {
-    if (value == _textScaleFactor) return;
-    _textScaleFactor = value;
+  TextScaler get textScaler => _textScaler;
+  TextScaler _textScaler = TextScaler.linear(1.0);
+  set textScaler(TextScaler value) {
+    if (value == _textScaler) return;
+    _textScaler = value;
     _cellSize = _measureCharSize();
     _paragraphCache.clear();
   }
@@ -62,7 +63,7 @@ class TerminalPainter {
     final textStyle = _textStyle.toTextStyle();
     final builder = ParagraphBuilder(textStyle.getParagraphStyle());
     builder.pushStyle(
-      textStyle.getTextStyle(textScaleFactor: _textScaleFactor),
+      textStyle.getTextStyle(textScaler: _textScaler),
     );
     builder.addText(test);
 
@@ -317,7 +318,7 @@ class TerminalPainter {
     final charCode = cellData.content & CellContent.codepointMask;
     if (charCode == 0) return;
 
-    final cacheKey = cellData.getHash() ^ _textScaleFactor.hashCode;
+    final cacheKey = cellData.getHash() ^ _textScaler.hashCode;
     var paragraph = _paragraphCache.getLayoutFromCache(cacheKey);
 
     if (cellData.flags & CellFlags.underline != 0) {
@@ -374,7 +375,7 @@ class TerminalPainter {
           char: char,
           offset: offset,
           cellSize: _cellSize,
-          devicePixelRatio: _textScaleFactor,
+          devicePixelRatio: _textScaler.textScaleFactor,
           color: color,
           fontSize: style.fontSize ?? 10,
         );
@@ -387,7 +388,7 @@ class TerminalPainter {
       paragraph = _paragraphCache.performAndCacheLayout(
         char,
         style,
-        _textScaleFactor,
+        _textScaler,
         cacheKey,
       );
     }

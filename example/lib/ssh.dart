@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dartssh2/dartssh2.dart';
 import 'package:example/src/virtual_keyboard.dart';
@@ -27,7 +26,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key}) : super(key: key);
+  MyHomePage({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -37,7 +36,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late final terminal = Terminal(inputHandler: keyboard);
 
-  final keyboard = VirtualKeyboard(defaultInputHandler);
+  final keyboard = VirtualKeyboard(defaultInputHandler as TerminalInputHandler);
 
   var title = host;
 
@@ -77,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
     };
 
     terminal.onOutput = (data) {
-      session.write(utf8.encode(data) as Uint8List);
+      session.write(utf8.encode(data));
     };
 
     session.stdout

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/src/core/buffer/cell_offset.dart';
-
 import 'package:xterm/src/core/input/keys.dart';
 import 'package:xterm/src/terminal.dart';
 import 'package:xterm/src/ui/controller.dart';
@@ -25,11 +24,11 @@ import 'package:xterm/src/ui/themes.dart';
 class TerminalView extends StatefulWidget {
   const TerminalView(
     this.terminal, {
-    Key? key,
+    super.key,
     this.controller,
     this.theme = TerminalThemes.defaultTheme,
     this.textStyle = const TerminalStyle(),
-    this.textScaleFactor,
+    this.textScaler,
     this.padding,
     this.scrollController,
     this.autoResize = true,
@@ -46,7 +45,7 @@ class TerminalView extends StatefulWidget {
     this.alwaysShowCursor = false,
     this.deleteDetection = false,
     this.shortcuts,
-    this.onKey,
+    this.onKeyEvent,
     this.readOnly = false,
     this.hardwareKeyboardOnly = false,
     this.simulateScroll = true,
@@ -55,7 +54,7 @@ class TerminalView extends StatefulWidget {
     this.verticalLineOffset = 0,
     this.transparentBackgroundCells = false,
     this.cellBackgroundOpacity = 1,
-  }) : super(key: key);
+  });
 
   /// The underlying terminal that this widget renders.
   final Terminal terminal;
@@ -68,10 +67,7 @@ class TerminalView extends StatefulWidget {
   /// The style to use for painting characters.
   final TerminalStyle textStyle;
 
-  /// The number of font pixels for each logical pixel. If null, will use the
-  /// [MediaQueryData.textScaleFactor] obtained from [MediaQuery], or 1.0 if
-  /// there is no [MediaQuery] in scope.
-  final double? textScaleFactor;
+  final TextScaler? textScaler;
 
   /// Padding around the inner [Scrollable] widget.
   final EdgeInsets? padding;
@@ -135,7 +131,7 @@ class TerminalView extends StatefulWidget {
 
   /// Keyboard event handler of the terminal. This has higher priority than
   /// [shortcuts] and input handler of the terminal.
-  final FocusOnKeyCallback? onKey;
+  final FocusOnKeyEventCallback? onKeyEvent;
 
   /// True if no input should send to the terminal.
   final bool readOnly;
@@ -252,8 +248,7 @@ class TerminalViewState extends State<TerminalView> {
           padding: MediaQuery.of(context).padding,
           autoResize: widget.autoResize,
           textStyle: widget.textStyle,
-          textScaleFactor:
-              widget.textScaleFactor ?? MediaQuery.textScaleFactorOf(context),
+          textScaler: widget.textScaler ?? MediaQuery.textScalerOf(context),
           theme: widget.theme,
           focusNode: _focusNode,
           cursorType: widget.cursorType,
@@ -293,11 +288,13 @@ class TerminalViewState extends State<TerminalView> {
         onComposing: _onComposing,
         onAction: (action) {
           _scrollToBottom();
-          if (action == TextInputAction.done) {
+          // Android sends TextInputAction.newline when the user presses the virtual keyboard's enter key.
+          if (action == TextInputAction.done ||
+              action == TextInputAction.newline) {
             widget.terminal.keyInput(TerminalKey.enter);
           }
         },
-        onKey: _handleKeyEvent,
+        onKeyEvent: _handleKeyEvent,
         readOnly: widget.readOnly,
         child: child,
       );
@@ -309,7 +306,7 @@ class TerminalViewState extends State<TerminalView> {
         autofocus: widget.autofocus,
         onInsert: _onInsert,
         onComposing: _onComposing,
-        onKey: _handleKeyEvent,
+        onKeyEvent: _handleKeyEvent,
       );
     }
 
@@ -418,8 +415,8 @@ class TerminalViewState extends State<TerminalView> {
     setState(() => _composingText = text);
   }
 
-  KeyEventResult _handleKeyEvent(FocusNode focusNode, RawKeyEvent event) {
-    final resultOverride = widget.onKey?.call(focusNode, event);
+  KeyEventResult _handleKeyEvent(FocusNode focusNode, KeyEvent event) {
+    final resultOverride = widget.onKeyEvent?.call(focusNode, event);
     if (resultOverride != null && resultOverride != KeyEventResult.ignored) {
       return resultOverride;
     }
@@ -434,7 +431,7 @@ class TerminalViewState extends State<TerminalView> {
       return shortcutResult;
     }
 
-    if (event is! RawKeyDownEvent) {
+    if (event is KeyUpEvent) {
       return KeyEventResult.ignored;
     }
 
@@ -446,9 +443,9 @@ class TerminalViewState extends State<TerminalView> {
 
     final handled = widget.terminal.keyInput(
       key,
-      ctrl: event.isControlPressed,
-      alt: event.isAltPressed,
-      shift: event.isShiftPressed,
+      ctrl: HardwareKeyboard.instance.isControlPressed,
+      alt: HardwareKeyboard.instance.isAltPressed,
+      shift: HardwareKeyboard.instance.isShiftPressed,
     );
 
     if (handled) {
@@ -480,14 +477,14 @@ class TerminalViewState extends State<TerminalView> {
 
 class _TerminalView extends LeafRenderObjectWidget {
   const _TerminalView({
-    Key? key,
+    super.key,
     required this.terminal,
     required this.controller,
     required this.offset,
     required this.padding,
     required this.autoResize,
     required this.textStyle,
-    required this.textScaleFactor,
+    required this.textScaler,
     required this.theme,
     required this.focusNode,
     required this.cursorType,
@@ -499,7 +496,7 @@ class _TerminalView extends LeafRenderObjectWidget {
     this.transparentBackgroundCells = false,
     this.onEditableRect,
     this.composingText,
-  }) : super(key: key);
+  });
 
   final Terminal terminal;
 
@@ -513,7 +510,7 @@ class _TerminalView extends LeafRenderObjectWidget {
 
   final TerminalStyle textStyle;
 
-  final double textScaleFactor;
+  final TextScaler textScaler;
 
   final TerminalTheme theme;
 
@@ -546,7 +543,7 @@ class _TerminalView extends LeafRenderObjectWidget {
       padding: padding,
       autoResize: autoResize,
       textStyle: textStyle,
-      textScaleFactor: textScaleFactor,
+      textScaler: textScaler,
       theme: theme,
       focusNode: focusNode,
       cursorType: cursorType,
@@ -570,7 +567,7 @@ class _TerminalView extends LeafRenderObjectWidget {
       ..padding = padding
       ..autoResize = autoResize
       ..textStyle = textStyle
-      ..textScaleFactor = textScaleFactor
+      ..textScaler = textScaler
       ..theme = theme
       ..focusNode = focusNode
       ..cursorType = cursorType
